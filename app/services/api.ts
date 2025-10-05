@@ -263,16 +263,32 @@ export interface LabSubmission {
 // API Service
 class ApiService {
   // Authentication
-  async login(email: string, password: string) {
-    const response = await api.post('/token', { email, password });
+  async login(username: string, password: string) {
+    const response = await api.post('/token', { 
+      username,
+      password,
+      grant_type: 'password' 
+    }, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+    
     if (response.data.access_token) {
       localStorage.setItem('auth_token', response.data.access_token);
+      // Set default auth header for subsequent requests
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
     }
     return response.data;
   }
 
-  async register(email: string, password: string, role: string = 'student') {
-    const response = await api.post('/register', { email, password, role });
+  async register(username: string, password: string, phone: string, role: string = 'student') {
+    const response = await api.post('/register', { 
+      username, 
+      password, 
+      phone_number: phone,
+      role 
+    });
     return response.data;
   }
 

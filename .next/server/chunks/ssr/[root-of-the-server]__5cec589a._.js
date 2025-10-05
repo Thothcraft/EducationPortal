@@ -1084,20 +1084,28 @@ api.interceptors.response.use((response)=>response, (error)=>{
 // API Service
 class ApiService {
     // Authentication
-    async login(email, password) {
+    async login(username, password) {
         const response = await api.post('/token', {
-            email,
-            password
+            username,
+            password,
+            grant_type: 'password'
+        }, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
         });
         if (response.data.access_token) {
             localStorage.setItem('auth_token', response.data.access_token);
+            // Set default auth header for subsequent requests
+            api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
         }
         return response.data;
     }
-    async register(email, password, role = 'student') {
+    async register(username, password, phone, role = 'student') {
         const response = await api.post('/register', {
-            email,
+            username,
             password,
+            phone_number: phone,
             role
         });
         return response.data;
