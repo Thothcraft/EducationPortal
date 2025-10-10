@@ -453,7 +453,7 @@ var { g: global, __dirname } = __turbopack_context__;
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/axios/lib/axios.js [app-ssr] (ecmascript)");
 ;
 // API Configuration
-const API_BASE_URL = ("TURBOPACK compile-time value", "http://localhost:8080") || 'https://web-production-d7d37.up.railway.app';
+const API_BASE_URL = ("TURBOPACK compile-time value", "https://web-production-d7d37.up.railway.app") || 'https://web-production-d7d37.up.railway.app';
 // Create axios instance
 const api = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].create({
     baseURL: API_BASE_URL,
@@ -738,20 +738,28 @@ api.interceptors.response.use((response)=>response, (error)=>{
 // API Service
 class ApiService {
     // Authentication
-    async login(email, password) {
+    async login(username, password) {
         const response = await api.post('/token', {
-            email,
-            password
+            username,
+            password,
+            grant_type: 'password'
+        }, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
         });
         if (response.data.access_token) {
             localStorage.setItem('auth_token', response.data.access_token);
+            // Set default auth header for subsequent requests
+            api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
         }
         return response.data;
     }
-    async register(email, password, role = 'student') {
+    async register(username, password, phone, role = 'student') {
         const response = await api.post('/register', {
-            email,
+            username,
             password,
+            phone_number: phone,
             role
         });
         return response.data;

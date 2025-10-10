@@ -17,31 +17,59 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
+    console.log('Starting login process...');
+    
     try {
-      const res = await fetch(
-        "https://web-production-d7d37.up.railway.app/token",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({ username, password }),
-        }
-      );
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      console.log(`Sending login request to ${apiUrl}/api/auth/login`);
+      const res = await fetch(`${apiUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      }).catch(err => {
+        console.error('Network error:', err);
+        throw new Error(`Network error: ${err.message}`);
+      });
 
+      console.log('Received response, status:', res.status);
+      
+      let data;
+      try {
+        data = await res.json();
+        console.log('Response data:', data);
+      } catch (parseError) {
+        console.error('Error parsing JSON response:', parseError);
+        const text = await res.text();
+        console.error('Raw response:', text);
+        throw new Error('Invalid response from server');
+      }
+      
       if (!res.ok) {
-        setError("Invalid username or password");
+        console.error('Login failed:', data);
+        setError(data.error || `Error: ${res.status} - ${res.statusText}`);
         setIsLoading(false);
         return;
       }
 
-      const data = await res.json();
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ username, token: data.access_token })
-      );
-      localStorage.setItem("token", data.access_token);
-      router.push("/home");
+      if (data.access_token) {
+        console.log('Login successful, storing token');
+        localStorage.setItem("user", JSON.stringify({ 
+          username, 
+          token: data.access_token 
+        }));
+        localStorage.setItem("token", data.access_token);
+        router.push("/home");
+      } else {
+        console.error('No access token in response:', data);
+        throw new Error("No access token received in response");
+      }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again later.");
+      console.error('Login error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error details:', { errorMessage, username });
+      setError(`Login failed: ${errorMessage}. Please check the console for more details.`);
     } finally {
       setIsLoading(false);
     }

@@ -53,7 +53,7 @@ function AuthPage() {
         }
         try {
             // Call backend authentication
-            const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:8080") || 'https://web-production-d7d37.up.railway.app'}/token`, {
+            const response = await fetch(`${("TURBOPACK compile-time value", "https://web-production-d7d37.up.railway.app") || 'https://web-production-d7d37.up.railway.app'}/token`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
